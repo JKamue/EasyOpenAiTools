@@ -4,10 +4,21 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<Version />
+	<Title>EasyOpenAiTools</Title>
+	<Authors>JKamue</Authors>
+	<Description>EasyOpenAiTools is a lightweight wrapper allowing you to easily build chatbots based on OpenAi</Description>
+	<PackageProjectUrl>https://github.com/JKamue/EasyOpenAiTools</PackageProjectUrl>
+	<PackageLicenseUrl>https://github.com/JKamue/EasyOpenAiTools/blob/main/LICENSE</PackageLicenseUrl>
+	<RepositoryUrl>https://github.com/JKamue/EasyOpenAiTools</RepositoryUrl>
+	<RepositoryType>git</RepositoryType>
+	<PackageTags>OpenAI Tools Functions AI ML ChatGPT GPT4 GPT-4 GPT3 GPT-3 API</PackageTags>
+	<PackageReadmeFile>README.md</PackageReadmeFile> 
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="OpenAI" Version="2.0.0-beta.3" />
+	<None Include="../README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
 </Project>
