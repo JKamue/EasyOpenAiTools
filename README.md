@@ -90,7 +90,7 @@ This description will be used by the LLM to identify and use the tool so make su
 - `ToolProperty`: These are Arguments you want the LLM to set when calling your custom Tool. Again each Argument has a name and Description.
 - `ToolMethod`: This is the method that will be called when the LLM calls your tool
 
-```
+```c#
 [Tool("GetWeatherAtLocation", 
       "Returns the current temperature of a given city or location")]
 internal class WeatherToolNew
