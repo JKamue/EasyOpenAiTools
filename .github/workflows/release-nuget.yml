@@ -1,0 +1,26 @@
+name: Release to NuGet
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Set env
+      run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    - name: Build
+      run: dotnet build EasyOpenAiTools.Library -c Release
+    - name: Pack nugets
+      run: dotnet pack EasyOpenAiTools.Library -c Release -p:PackageVersion=${{ env.RELEASE_VERSION }} --no-build --output .
+    - name: Push to NuGet
+      run: dotnet nuget push "*.nupkg" --api-key ${{secrets.nuget_api_key}} --source https://api.nuget.org/v3/index.json
