@@ -12,7 +12,7 @@
 
 ## About
 
-EasyOpenAiTools is a lightweight wrapper allowing you to easily build chatbots based on OpenApi.
+EasyOpenAiTools is a lightweight wrapper allowing you to easily build chatbots based on OpenAi.
 It is built around the new [openai/openai-dotnet](https://github.com/openai/openai-dotnet) library.
 
 
