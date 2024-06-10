@@ -4,7 +4,9 @@ using OpenMeteo;
 namespace EasyOpenAiTools.Samples.Tools
 {
     [Tool("GetWeatherAtLocation", 
-        "Returns the current temperature of a given city or location. This does not convert temperatures or does any operations other than looking up the temperature of a set place. Use this soley to get the temperature of one place")]
+        "Returns the current temperature of a given city or location." +
+        "Use this soley to get the temperature of one place or city." +
+        "If only the temperature is needed prefer this function over other functions that give more no needed information.")]
     internal class WeatherToolNew
     {
         [ToolProperty("Location", "The name of a city. This only takes the city name, not numbers or other inputs.")]
