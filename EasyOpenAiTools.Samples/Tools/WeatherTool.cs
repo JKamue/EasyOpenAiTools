@@ -7,7 +7,7 @@ namespace EasyOpenAiTools.Samples.Tools
         "Returns the current temperature of a given city or location." +
         "Use this soley to get the temperature of one place or city." +
         "If only the temperature is needed prefer this function over other functions that give more no needed information.")]
-    internal class WeatherToolNew
+    internal class WeatherTool
     {
         [ToolProperty("Location", "The name of a city. This only takes the city name, not numbers or other inputs.")]
         public string Location { get; init; }
