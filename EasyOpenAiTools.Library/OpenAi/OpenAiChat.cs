@@ -1,4 +1,5 @@
-﻿using OpenAI.Chat;
+﻿using CSharpFunctionalExtensions;
+using OpenAI.Chat;
 
 namespace EasyOpenAiTools.Library.OpenAi
 {
@@ -20,7 +21,12 @@ namespace EasyOpenAiTools.Library.OpenAi
 
         public async Task<string> Ask(string message)
         {
-            messageLog = await _model.Ask(message, messageLog);
+            var messageResult = await _model.Ask(message, messageLog);
+
+            if (messageResult.IsFailure)
+                return $"Response failed because '{messageResult.Error}'";
+
+            messageLog = messageResult.Value;
             return messageLog.Last().Content.First().Text;
         }
     }

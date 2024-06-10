@@ -1,4 +1,5 @@
-﻿using EasyOpenAiTools.Library.Tool;
+﻿using CSharpFunctionalExtensions;
+using EasyOpenAiTools.Library.Tool;
 using Microsoft.Extensions.Logging;
 using OpenAI.Chat;
 using System.Text.Json;
@@ -22,7 +23,7 @@ namespace EasyOpenAiTools.Library.OpenAi
             _logger = logger;
         }
 
-        internal async Task<List<ChatMessage>> Ask(string question, List<ChatMessage> previousChat)
+        internal async Task<Result<List<ChatMessage>>> Ask(string question, List<ChatMessage> previousChat)
         {
             var message = new UserChatMessage(question);
 
@@ -42,18 +43,18 @@ namespace EasyOpenAiTools.Library.OpenAi
             return chatCompletionOptions;
         }
 
-        private async Task<List<ChatMessage>> ExecuteQuestion(List<ChatMessage> messages)
+        private async Task<Result<List<ChatMessage>>> ExecuteQuestion(List<ChatMessage> messages)
         {
             ChatCompletion chatCompletion = _client.CompleteChat(messages, GenerateChatCompletionOptions());
 
             if (chatCompletion.FinishReason == ChatFinishReason.Length)
-                throw new NotImplementedException("Incomplete model output due to MaxTokens parameter or token limit exceeded.");
+                return Result.Failure<List<ChatMessage>>("Incomplete model output due to MaxTokens parameter or token limit exceeded.");
 
             if (chatCompletion.FinishReason == ChatFinishReason.ContentFilter)
-                throw new NotImplementedException("Omitted content due to a content filter flag.");
+                return Result.Failure<List<ChatMessage>>("Omitted content due to a content filter flag.");
 
             if (chatCompletion.FinishReason == ChatFinishReason.FunctionCall)
-                throw new NotImplementedException("Deprecated in favor of tool calls.");
+                return Result.Failure<List<ChatMessage>>("Deprecated function call attempted.");
 
             messages.Add(new AssistantChatMessage(chatCompletion));
 
@@ -64,7 +65,11 @@ namespace EasyOpenAiTools.Library.OpenAi
                 messages.AddRange(toolCallResults);
 
                 // Run the Model again with the new information added
-                messages = await ExecuteQuestion(messages);
+                var messageResult = await ExecuteQuestion(messages);
+                if (messageResult.IsFailure)
+                    return messageResult;
+
+                messages = messageResult.Value;
             }
 
             return messages;
