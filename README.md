@@ -152,6 +152,29 @@ Since this project is open source you are very welcome to contribute and impleme
 
 ## Apendix
 
+### Catch error messages with code
+By default issues or errors like an issue due to the ContentFilter will be communicated as text. 
+Running `await chat.Ask(userMessage)` will return `Response failed because '{reason}'`.
+Then the user can adapt their request.
+
+If you want to instead catch those errors and communicate them to users differently you can use the following example:
+
+```c#
+var responseResult = await chat.AskWithResult(userMessage);
+
+if (responseResult.IsFailure)
+{
+    // Handle
+}
+else
+{
+    var response = responseResult.Value;
+    Console.WriteLine($"[Assistant]: {response}");
+}
+```
+
+Results use [vkhorikov/CSharpFunctionalExtensions](https://github.com/vkhorikov/CSharpFunctionalExtensions) under the hood.
+
 ### Multiple Functions with Debugging
 
 This is a small example highlighting how the model can intelligently use functions and also showing how to debug easily.
