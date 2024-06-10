@@ -1,5 +1,5 @@
 ﻿namespace EasyOpenAiTools.Library.OpenAi;
-public record OpenAiModelSettings(
+public record OpenAiSettings(
   string OpenAiApiKey,
   OpenAiModelType OpenAiModel,
   string InitialPrompt

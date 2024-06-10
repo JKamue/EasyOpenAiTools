@@ -5,47 +5,30 @@ using System.Text.Json;
 
 namespace EasyOpenAiTools.Library.OpenAi
 {
-    public class OpenAiModel
+    internal class OpenAiModel
     {
         private readonly ChatClient _client;
-        private readonly SystemChatMessage _modelPrompt;
         private readonly ToolManager _toolManager;
         private readonly ILogger? _logger;
 
-        public OpenAiModel(OpenAiModelSettings settings, ILogger? logger = null)
+        internal OpenAiModel(OpenAiSettings settings, ILogger? logger = null)
         {
             _client = new ChatClient(
                 settings.OpenAiModel,
                 settings.OpenAiApiKey
             );
 
-            _modelPrompt = new SystemChatMessage(settings.InitialPrompt);
             _toolManager = new ToolManager(logger);
             _logger = logger;
         }
 
-        public async Task<List<ChatMessage>> CreateThread(string question)
-        {
-            List<ChatMessage> messages = [
-                _modelPrompt,
-                new UserChatMessage(question),
-            ];
-
-            return await RunThread(messages);
-        }
-
-        public async Task<List<ChatMessage>> AskInThread(string question, List<ChatMessage> thread)
+        internal async Task<List<ChatMessage>> Ask(string question, List<ChatMessage> previousChat)
         {
             var message = new UserChatMessage(question);
 
-            thread.Add(message);
+            previousChat.Add(message);
 
-            return await RunThread(thread);
-        }
-
-        private async Task<List<ChatMessage>> RunThread(List<ChatMessage> messages)
-        {
-            return await ExecuteQuestion(messages);
+            return await ExecuteQuestion(previousChat);
         }
 
         private ChatCompletionOptions GenerateChatCompletionOptions()

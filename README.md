@@ -29,7 +29,7 @@ Make sure to check the `EasyOpenAiTools.Samples` project for a running example.
 
 ### Creating a Model
 
-To create a model you need to supply an OpenAiModelSettings Object containing the following information:
+To start a cjat you need to supply an OpenAiSettings Object containing the following information:
 - Your Api Key
 - The Type of Model you want to use (currently Gpt3.5 or Gpt4)
 - The initial prompt telling the model how to behave [check here for inspiration](https://platform.openai.com/docs/guides/prompt-engineering/tactics)
@@ -39,34 +39,23 @@ var openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
 var openAiModelType = OpenAiModelType.Gpt4;
 var initialPrompt = "Answer all questions by users in a brief and concise way.";
 
-var openAiModelSettings = new OpenAiModelSettings(openAiApiKey, openAiModelType, initialPrompt);
-
-var openAiModel = new OpenAiModel(openAiModelSettings);
+var openAiSettings = new OpenAiSettings(openAiApiKey, openAiModelType, initialPrompt);
+var chat = OpenAiChatFactory.StartNewChat(openAiSettings, logger);
 ```
 
-After creating the model, using it is as easy as this:
+After creating the chat using it is as easy as:
 
 ```c#
-var thread = openAiModel.CreateThread("Why is the moon flying away further from earth?").Result;
-Console.WriteLine($"[Assistant]: {thread.Last().Content[0].Text}");
+var response = chat.Ask("Why is the moon flying away further from earth?").Result;
+Console.WriteLine($"[Assistant]: {response}");
 
 // [Assistant]: The Moon is gradually moving away from the Earth due to tidal forces. 
 // The Earth's rotation causes tidal bulges in the oceans, which transfer angular momentum 
 // to the Moon, causing it to slowly accelerate in its orbit. As the Moon gains angular momentum, 
 // its orbit becomes slightly larger, leading to an increase in the distance between the Earth and 
 // the Moon. This process occurs at a rate of about 3.8 centimeters per year.
-```
 
-The returning object is a thread that contains a list of all previous messages and all function calls the model has made to answer your question.
-The final response to the latest question can be found in the last message.
-Currently the Thread is a List that is hard to work with. 
-I am unhappy with the current state and will improve this in future updates.
-
-You can continue the conversation of a thread as follows:
-
-```c#
-thread = openAiModel.AskInThread("When will the moon be to small to fully cover the sun?", thread).Result;
-
+var response = chat.Ask("When will the moon be to small to fully cover the sun?").Result;
 
 // [Assistant]: The phenomenon where the Moon covers the Sun completely during a solar eclipse is known 
 // as a total solar eclipse. Due to the Moon's gradual increase in distance from the Earth, its apparent 
@@ -75,6 +64,7 @@ thread = openAiModel.AskInThread("When will the moon be to small to fully cover 
 // only experience annular eclipses, where the Moon appears smaller than the Sun and leaves a ring of the
 // Sun visible around its edges.
 ```
+
 
 ### Creating Tools
 
@@ -153,7 +143,7 @@ Instead a tool should provide small functions that enhance the experience.
 
 ## Future developement
 
-I plan to rework a bunch of things. Namely the way exceptions are handled and the way the results are communicated at the moment.
+I plan to rework a bunch of things. Namely the way exceptions are handled.
 I also want to add support for enums as input in the future as well as any other input types the OpenAi supports. I also plan to add optional properties.
 
 Integrating image support or any other [openai/openai-dotnet](https://github.com/openai/openai-dotnet) functions is not planned at the moment but might be added to the todo if I need them in any project.
@@ -178,10 +168,10 @@ using var factory = LoggerFactory.Create(builder =>
 var logger = factory.CreateLogger("EasyOpenAi");
 ```
 
-You can then supply this logger when creating an OpenAiModel:
+You can then supply this logger when creating a new Chat:
 
 ```c#
-var openAiModel = new OpenAiModel(openAiModelSettings, logger);
+var chat = OpenAiChatFactory.StartNewChat(openAiSettings, logger);
 ```
 
 The resulting output will look like this
