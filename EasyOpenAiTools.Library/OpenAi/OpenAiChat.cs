@@ -21,13 +21,25 @@ namespace EasyOpenAiTools.Library.OpenAi
 
         public async Task<string> Ask(string message)
         {
-            var messageResult = await _model.Ask(message, messageLog);
+            var messageResult = await AskWithResult(message);
 
             if (messageResult.IsFailure)
                 return $"Response failed because '{messageResult.Error}'";
 
-            messageLog = messageResult.Value;
-            return messageLog.Last().Content.First().Text;
+            return messageResult.Value;
         }
+
+        public async Task<Result<string>> AskWithResult(string message)
+        {
+            var messageResult = await _model.Ask(message, messageLog);
+
+            if (messageResult.IsFailure)
+                return Result.Failure<string>(messageResult.Error);
+
+            messageLog = messageResult.Value;
+            return GetLastMessage();
+        }
+
+        public string GetLastMessage() => messageLog.Last().Content.First().Text;
     }
 }
