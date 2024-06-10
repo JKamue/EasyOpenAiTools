@@ -25,6 +25,20 @@ Integrating OpenAi LLMs with custom tools and function calling was my main goal 
 Registering a tool and running the OpenAi library in a way that makes sure that tools are called correctly takes some boilerplate that would have to be repeated in every project.
 I created this library to allow me to easily integrate and reuse the code in different projects in the future. And maybe it will help you too :)
 
+## Installation
+
+Available on [NuGet](https://www.nuget.org/packages/EasyOpenAiTools.Library)
+
+```bash
+dotnet add package EasyOpenAiTools.Library
+```
+
+or
+
+```powershell
+PM> Install-Package EasyOpenAiTools.Library
+```
+
 ## How does it work
 
 Make sure to check the `EasyOpenAiTools.Samples` project for a running example.
