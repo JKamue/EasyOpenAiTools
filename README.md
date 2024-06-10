@@ -191,11 +191,11 @@ dbug: EasyOpenAi[0]
 dbug: EasyOpenAi[0]
       EasyOpenAiTools.Samples.Tools.WeatherForcecastTool successfully add as tool
 dbug: EasyOpenAi[0]
-      EasyOpenAiTools.Samples.Tools.WeatherTool successfully add as tool
+      EasyOpenAiTools.Samples.Tools.TemperatureTool successfully add as tool
 LLM chat (write exit to close):
 [User]: What is the current temperature in karlsruhe?
 dbug: EasyOpenAi[0]
-      Executing GetWeatherAtLocation with arguments '{"Location":"Karlsruhe"}'
+      Executing GetTemperatureAtLocation with arguments '{"Location":"Karlsruhe"}'
 [Assistant]: The current temperature in Karlsruhe is 18.6°C.
 [User]: Can you give me more details on the weather at the moment?
 dbug: EasyOpenAi[0]
