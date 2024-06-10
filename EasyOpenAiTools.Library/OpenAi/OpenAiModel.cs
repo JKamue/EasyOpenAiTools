@@ -44,54 +44,49 @@ namespace EasyOpenAiTools.Library.OpenAi
 
         private async Task<List<ChatMessage>> ExecuteQuestion(List<ChatMessage> messages)
         {
-            bool requiresAction;
+            // Adopted version of https://github.com/openai/openai-dotnet/blob/bd11859981db75e8f66cc0c00dbb233507e7408e/README.md?plain=1#L225-L305
+            ChatCompletion chatCompletion = _client.CompleteChat(messages, GenerateChatCompletionOptions());
 
-            do
+            switch (chatCompletion.FinishReason)
             {
-                requiresAction = false;
-                ChatCompletion chatCompletion = _client.CompleteChat(messages, GenerateChatCompletionOptions());
+                case ChatFinishReason.Stop:
+                    {
+                        // Add the assistant message to the conversation history.
+                        messages.Add(new AssistantChatMessage(chatCompletion));
+                        break;
+                    }
 
-                switch (chatCompletion.FinishReason)
-                {
-                    case ChatFinishReason.Stop:
+                case ChatFinishReason.ToolCalls:
+                    {
+                        // First, add the assistant message with tool calls to the conversation history.
+                        messages.Add(new AssistantChatMessage(chatCompletion));
+
+                        // Then, add a new tool message for each tool call that is resolved.
+                        foreach (ChatToolCall toolCall in chatCompletion.ToolCalls)
                         {
-                            // Add the assistant message to the conversation history.
-                            messages.Add(new AssistantChatMessage(chatCompletion));
-                            break;
+                            _logger.Log(LogLevel.Debug, "Executing {Tool} with arguments '{Arguments}'", toolCall.FunctionName, toolCall.FunctionArguments);
+                            using JsonDocument argumentsJson = JsonDocument.Parse(toolCall.FunctionArguments);
+                            var toolResult = await _toolManager.ExecuteToolByName(toolCall.FunctionName, argumentsJson)
+                                ?? "This Tool does not exist! If it is a calculation you can do yourself then do it yourself without telling the user. Else tell him that you currently cannot answer the question";
+                            messages.Add(new ToolChatMessage(toolCall.Id, toolResult));
                         }
 
-                    case ChatFinishReason.ToolCalls:
-                        {
-                            // First, add the assistant message with tool calls to the conversation history.
-                            messages.Add(new AssistantChatMessage(chatCompletion));
+                        messages = await ExecuteQuestion(messages);
+                        break;
+                    }
 
-                            // Then, add a new tool message for each tool call that is resolved.
-                            foreach (ChatToolCall toolCall in chatCompletion.ToolCalls)
-                            {
-                                _logger.Log(LogLevel.Debug, "Executing {Tool} with arguments '{Arguments}'", toolCall.FunctionName, toolCall.FunctionArguments);
-                                using JsonDocument argumentsJson = JsonDocument.Parse(toolCall.FunctionArguments);
-                                var toolResult = await _toolManager.ExecuteToolByName(toolCall.FunctionName, argumentsJson) 
-                                    ?? "This Tool does not exist! If it is a calculation you can do yourself then do it yourself without telling the user. Else tell him that you currently cannot answer the question";
-                                messages.Add(new ToolChatMessage(toolCall.Id, toolResult));
-                            }
+                case ChatFinishReason.Length:
+                    throw new NotImplementedException("Incomplete model output due to MaxTokens parameter or token limit exceeded.");
 
-                            requiresAction = true;
-                            break;
-                        }
+                case ChatFinishReason.ContentFilter:
+                    throw new NotImplementedException("Omitted content due to a content filter flag.");
 
-                    case ChatFinishReason.Length:
-                        throw new NotImplementedException("Incomplete model output due to MaxTokens parameter or token limit exceeded.");
+                case ChatFinishReason.FunctionCall:
+                    throw new NotImplementedException("Deprecated in favor of tool calls.");
 
-                    case ChatFinishReason.ContentFilter:
-                        throw new NotImplementedException("Omitted content due to a content filter flag.");
-
-                    case ChatFinishReason.FunctionCall:
-                        throw new NotImplementedException("Deprecated in favor of tool calls.");
-
-                    default:
-                        throw new NotImplementedException(chatCompletion.FinishReason.ToString());
-                }
-            } while (requiresAction);
+                default:
+                    throw new NotImplementedException(chatCompletion.FinishReason.ToString());
+            }
 
             return messages;
         }
