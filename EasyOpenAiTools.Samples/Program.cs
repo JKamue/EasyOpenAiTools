@@ -19,7 +19,7 @@ namespace EasyOpenAiTools.Samples
             var logger = loggerFactory.CreateLogger("EasyOpenAi");
 
             var openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
-            var openAiModelType = OpenAiModelType.Gpt4;
+            var openAiModelType = OpenAiModelType.Gpt4o;
             var initialPrompt = """
                 Answer all questions by users in a brief and concise way.
                 """;

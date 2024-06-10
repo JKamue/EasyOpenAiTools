@@ -33,12 +33,12 @@ Make sure to check the `EasyOpenAiTools.Samples` project for a running example.
 
 To start a cjat you need to supply an OpenAiSettings Object containing the following information:
 - Your Api Key
-- The Type of Model you want to use (currently Gpt3.5 or Gpt4)
+- The Type of Model you want to use 
 - The initial prompt telling the model how to behave [check here for inspiration](https://platform.openai.com/docs/guides/prompt-engineering/tactics)
 
 ```c#
 var openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
-var openAiModelType = OpenAiModelType.Gpt4;
+var openAiModelType = OpenAiModelType.Gpt4o;
 var initialPrompt = "Answer all questions by users in a brief and concise way.";
 
 var openAiSettings = new OpenAiSettings(openAiApiKey, openAiModelType, initialPrompt);
