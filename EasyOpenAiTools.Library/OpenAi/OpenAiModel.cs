@@ -1,4 +1,5 @@
 ﻿using EasyOpenAiTools.Library.Tool;
+using Microsoft.Extensions.Logging;
 using OpenAI.Chat;
 using System.Text.Json;
 
@@ -9,8 +10,9 @@ namespace EasyOpenAiTools.Library.OpenAi
         private readonly ChatClient _client;
         private readonly SystemChatMessage _modelPrompt;
         private readonly ToolManager _toolManager;
+        private readonly ILogger? _logger;
 
-        public OpenAiModel(OpenAiModelSettings settings)
+        public OpenAiModel(OpenAiModelSettings settings, ILogger? logger = null)
         {
             _client = new ChatClient(
                 settings.OpenAiModel,
@@ -18,7 +20,8 @@ namespace EasyOpenAiTools.Library.OpenAi
             );
 
             _modelPrompt = new SystemChatMessage(settings.InitialPrompt);
-            _toolManager = new ToolManager();
+            _toolManager = new ToolManager(logger);
+            _logger = logger;
         }
 
         public async Task<List<ChatMessage>> CreateThread(string question)
@@ -82,8 +85,10 @@ namespace EasyOpenAiTools.Library.OpenAi
                             // Then, add a new tool message for each tool call that is resolved.
                             foreach (ChatToolCall toolCall in chatCompletion.ToolCalls)
                             {
+                                _logger.Log(LogLevel.Debug, "Executing {Tool} with arguments '{Arguments}'", toolCall.FunctionName, toolCall.FunctionArguments);
                                 using JsonDocument argumentsJson = JsonDocument.Parse(toolCall.FunctionArguments);
-                                var toolResult = await _toolManager.ExecuteToolByName(toolCall.FunctionName, argumentsJson) ?? "This Tool does not exist! If it is a calculation you can do yourself then do it yourself without telling the user. Else tell him that you currently cannot answer the question";
+                                var toolResult = await _toolManager.ExecuteToolByName(toolCall.FunctionName, argumentsJson) 
+                                    ?? "This Tool does not exist! If it is a calculation you can do yourself then do it yourself without telling the user. Else tell him that you currently cannot answer the question";
                                 messages.Add(new ToolChatMessage(toolCall.Id, toolResult));
                             }
 
