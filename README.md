@@ -159,3 +159,79 @@ I also want to add support for enums as input in the future as well as any other
 Integrating image support or any other [openai/openai-dotnet](https://github.com/openai/openai-dotnet) functions is not planned at the moment but might be added to the todo if I need them in any project.
 
 Since this project is open source you are very welcome to contribute and implement any improvements or features you can imagine.
+
+## Apendix
+
+### Multiple Functions with Debugging
+
+This is a small example highlighting how the model can intelligently use functions and also showing how to debug easily.
+
+First you need to create a custom logger:
+
+```c#
+using var factory = LoggerFactory.Create(builder =>
+{
+    builder
+        .AddConsole()
+        .SetMinimumLevel(LogLevel.Debug);
+    });
+var logger = factory.CreateLogger("EasyOpenAi");
+```
+
+You can then supply this logger when creating an OpenAiModel:
+
+```c#
+var openAiModel = new OpenAiModel(openAiModelSettings, logger);
+```
+
+The resulting output will look like this
+```
+dbug: EasyOpenAi[0]
+      2 tools found, will try to add them
+dbug: EasyOpenAi[0]
+      EasyOpenAiTools.Samples.Tools.WeatherForcecastTool successfully add as tool
+dbug: EasyOpenAi[0]
+      EasyOpenAiTools.Samples.Tools.WeatherTool successfully add as tool
+LLM chat (write exit to close):
+[User]: What is the current temperature in karlsruhe?
+dbug: EasyOpenAi[0]
+      Executing GetWeatherAtLocation with arguments '{"Location":"Karlsruhe"}'
+[Assistant]: The current temperature in Karlsruhe is 18.6°C.
+[User]: Can you give me more details on the weather at the moment?
+dbug: EasyOpenAi[0]
+      Executing GetWeatherForecastForLocation with arguments '{"Location":"Karlsruhe","Date":"0"}'
+[Assistant]: Here are the detailed weather conditions for Karlsruhe at the moment:
+- **Maximum Temperature:** 22.1°C
+- **Minimum Temperature:** 13°C
+- **Apparent Temperature Range:** 11.6°C to 19.1°C
+- **Precipitation:** 0.7 mm
+- **Rain:** 0.7 mm
+- **No Showers or Snowfall**
+- **Precipitation Hours:** 2 hours
+- **Max Windspeed:** 51.5 km/h
+- **Wind Direction:** 265°
+[User]: When will the weather be the nices in karlsruhe this week?
+dbug: EasyOpenAi[0]
+      Executing GetWeatherForecastForLocation with arguments '{"Location": "Karlsruhe", "Date": "1"}'
+dbug: EasyOpenAi[0]
+      Executing GetWeatherForecastForLocation with arguments '{"Location": "Karlsruhe", "Date": "2"}'
+dbug: EasyOpenAi[0]
+      Executing GetWeatherForecastForLocation with arguments '{"Location": "Karlsruhe", "Date": "3"}'
+dbug: EasyOpenAi[0]
+      Executing GetWeatherForecastForLocation with arguments '{"Location": "Karlsruhe", "Date": "4"}'
+dbug: EasyOpenAi[0]
+      Executing GetWeatherForecastForLocation with arguments '{"Location": "Karlsruhe", "Date": "5"}'
+dbug: EasyOpenAi[0]
+      Executing GetWeatherForecastForLocation with arguments '{"Location": "Karlsruhe", "Date": "6"}'
+[Assistant]: Based on the weather forecast, the nicest day in Karlsruhe this week is likely to be:
+
+- **June 13**:
+  - **Maximum Temperature:** 21.7°C
+  - **Minimum Temperature:** 8.8°C
+  - **Apparent Temperature Range:** 7.2°C to 20.9°C
+  - **Precipitation:** 0 mm
+  - **Max Windspeed:** 18.4 km/h
+  - **Wind Direction:** 159°
+
+This day has clear conditions with no precipitation, pleasant temperatures, and moderate wind speed.
+```
