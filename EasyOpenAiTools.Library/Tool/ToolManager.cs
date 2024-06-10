@@ -1,6 +1,7 @@
-﻿using EasyOpenAiTools.Library.Tool.Attributes;
+﻿using CSharpFunctionalExtensions;
+using EasyOpenAiTools.Library.Tool.Attributes;
+using Microsoft.Extensions.Logging;
 using OpenAI.Chat;
-using System.Reflection;
 using System.Text.Json;
 
 namespace EasyOpenAiTools.Library.Tool
@@ -9,12 +10,19 @@ namespace EasyOpenAiTools.Library.Tool
     {
         private List<Tool> toolList = new List<Tool>();
 
-        internal ToolManager()
+        internal ToolManager(ILogger? logger = null)
         {
             var tools = GetTypesWith<ToolAttribute>();
+            logger?.Log(LogLevel.Debug, "{Count} tools found, will try to add them", tools.Count());
+
             foreach (var tool in tools)
             {
-                Register(tool);
+                var registrationResult = Register(tool);
+
+                if (registrationResult.IsSuccess)
+                    logger?.Log(LogLevel.Debug, "{Tool} successfully add as tool", tool.FullName);
+                else
+                    logger?.Log(LogLevel.Warning, "{Tool} could not be added because '{Error}'", tool.FullName, registrationResult.Error);
             }
         }
 
@@ -39,34 +47,14 @@ namespace EasyOpenAiTools.Library.Tool
             return output;
         }
 
-        private bool Register(Type toolType)
+        private Result Register(Type toolType)
         {
-            var toolAttributeOrNull = ReadAttributeOfClass<ToolAttribute>(toolType);
-            if (toolAttributeOrNull is null)
-                return false;
+            var toolCreationResult = Tool.LoadFrom(toolType);
 
-            var toolAttribute = toolAttributeOrNull;
-            var propertiesWithToolAttribute = GetPropertiesWithAttribute<ToolPropertyAttribute>(toolType);
+            if (toolCreationResult.IsSuccess)
+                toolList.Add(toolCreationResult.Value);
 
-            var toolProperties = propertiesWithToolAttribute
-                .Select(propertyWithToolAttribute =>
-                    new ToolProperty(
-                        propertyWithToolAttribute.property,
-                        propertyWithToolAttribute.attribute))
-                .ToList();
-
-            var methods = toolType.GetMethods();
-            var methodsWithAttribute = methods.Where(m => m.GetCustomAttribute<ToolMethod>() != null).ToArray();
-
-            if (methodsWithAttribute.Count() != 1)
-                return false;
-
-
-            var tool = new Tool(toolType, toolAttribute, toolProperties, methodsWithAttribute.First());
-
-            toolList.Add(tool);
-
-            return true;
+            return toolCreationResult;
         }
 
         internal async Task<string>? ExecuteToolByName(string functionName, JsonDocument arguments)
@@ -97,30 +85,6 @@ namespace EasyOpenAiTools.Library.Tool
         internal List<ChatTool> GetChatTools()
         {
             return toolList.Select(tool => tool.ToChatTool()).ToList();
-        }
-
-        private static T? ReadAttributeOfClass<T>(Type type) where T : Attribute
-        {
-            var toolAttributeOrNull = type.GetCustomAttributes(typeof(T), false).FirstOrDefault();
-
-            if (toolAttributeOrNull is null)
-                return null;
-
-            return toolAttributeOrNull as T;
-        }
-
-        private static (PropertyInfo property, T attribute)[] GetPropertiesWithAttribute<T>(Type type) where T : Attribute
-        {
-            // Get all properties of the type
-            var properties = type.GetProperties();
-
-            // Filter properties that have the specified attribute and project them as tuples
-            var propertiesWithAttribute = properties
-                .Select(p => (property: p, attribute: p.GetCustomAttributes(typeof(T), true).FirstOrDefault() as T))
-                .Where(t => t.attribute != null)
-                .ToArray();
-
-            return propertiesWithAttribute;
         }
     }
 }

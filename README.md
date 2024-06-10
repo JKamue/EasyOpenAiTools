@@ -154,6 +154,7 @@ Instead a tool should provide small functions that enhance the experience.
 ## Future developement
 
 I plan to rework a bunch of things. Namely the way exceptions are handled and the way the results are communicated at the moment.
+I also want to add support for enums as Input in the future as well as any other input types the OpenAi supports.
 
 Integrating image support or any other [openai/openai-dotnet](https://github.com/openai/openai-dotnet) functions is not planned at the moment but might be added to the todo if I need them in any project.
 
